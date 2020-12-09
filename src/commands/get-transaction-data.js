@@ -1,7 +1,7 @@
 const ethers = require('ethers')
 const { estimateBaseGas, calcDataGasCosts } = require('./utils')
 
-async function getTxGasEstimate(safeContract, to, value, data, operation) {
+async function getTxGasEstimate(provider, safeContract, to, value, data, operation) {
   let txGasEstimate = 0
   let estimateData = safeContract.interface.encodeFunctionData('requiredTxGas',[to, value, data, operation])
   try {
@@ -54,6 +54,7 @@ module.exports = (config) => async (safeAddress, { to, value, data, operation, n
     gasPrice,
     threshold,
     wallet,
+    provider,
     contracts: {
       gnosisSafeAbi
     }
@@ -63,7 +64,7 @@ module.exports = (config) => async (safeAddress, { to, value, data, operation, n
 
   const transactionNonce = nonce ? nonce : await safeContract.nonce()
 
-  let txGasEstimate = await getTxGasEstimate(safeContract, to, value, data, operation)
+  let txGasEstimate = await getTxGasEstimate(provider, safeContract, to, value, data, operation)
 
   let baseGasEstimate = estimateBaseGas(
     safeContract,

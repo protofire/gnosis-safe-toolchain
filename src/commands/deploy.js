@@ -45,8 +45,6 @@ const getCreationData = async function(gnosisSafeContract, gnosisSafeProxyFactor
 
   assert(await provider.getCode(target) === "0x")
 
-
-
   return {
       safe: target,
       data: gnosisSafeData,
@@ -77,9 +75,10 @@ const deployWithCreationData = async function(gnosisSafeProxyFactoryContract, cr
   const result = await tx.wait()
 
   console.log("    Deplyment Tx: ", result)
+  console.log("    Deployed address: ", result.events[0].args.proxy)
 
-  const iProxyContract = new ethers.Contract(creationData.safe, iProxyAbi, wallet)
-  assert(await iProxyContract.masterCopy(), gnosisSafeAddress)
+  // const iProxyContract = new ethers.Contract(creationData.safe, iProxyAbi, wallet)
+  // assert(await iProxyContract.masterCopy(), gnosisSafeAddress)
 }
 
 module.exports = (config) => async (owners) => {
