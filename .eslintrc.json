@@ -1,0 +1,19 @@
+{
+  "extends": ["eslint:recommended", "airbnb-base", "plugin:mocha/recommended", "plugin:prettier/recommended"],
+  "env": {
+    "mocha": true
+  },
+  "globals" : {
+    "usePlugin": false,
+    "ethers": true
+  },
+  "plugins": ["mocha", "prettier"],
+  "rules": {
+    "mocha/no-mocha-arrows": "off",
+    "no-console": "off",
+    "import/no-unresolved": "off",
+    "no-underscore-dangle": "off",
+    "no-plusplus": "off"
+  },
+  "ignorePatterns": ["coverage/", "cache/"]
+}

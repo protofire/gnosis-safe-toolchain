@@ -1,72 +1,87 @@
+/* eslint-disable no-await-in-loop */
 const ethers = require('ethers')
 const { estimateBaseGas, calcDataGasCosts } = require('./utils')
 
-async function getTxGasEstimate(provider, safeContract, to, value, data, operation) {
+async function getTxGasEstimate(safeContract, to, value, data, operation, provider, logger) {
   let txGasEstimate = 0
-  let estimateData = safeContract.interface.encodeFunctionData('requiredTxGas',[to, value, data, operation])
+  const estimateData = safeContract.interface.encodeFunctionData('requiredTxGas', [
+    to,
+    value,
+    data,
+    operation,
+  ])
   try {
-      let estimateResponse = await provider.call({
-          to: safeContract.address,
-          from: safeContract.address,
-          data: estimateData,
-          gasPrice: 0,
-      })
+    const estimateResponse = await provider.call({
+      to: safeContract.address,
+      from: safeContract.address,
+      data: estimateData,
+      gasPrice: 0,
+    })
 
-      txGasEstimate = ethers.BigNumber.from('0x' + estimateResponse.substring(138))
-      // Add 10k else we will fail in case of nested calls
-      txGasEstimate = txGasEstimate.toNumber() + 10000
-  } catch(e) {
-      console.log("    Could not estimate cause: " + e)
+    txGasEstimate = ethers.BigNumber.from(`0x${estimateResponse.substring(138)}`)
+    // Add 10k else we will fail in case of nested calls
+    txGasEstimate = txGasEstimate.toNumber() + 10000
+  } catch (e) {
+    logger.log('    Could not estimate cause: ', e)
   }
 
   if (txGasEstimate > 0) {
-    let estimateDataGasCosts = calcDataGasCosts(estimateData)
+    const estimateDataGasCosts = calcDataGasCosts(estimateData)
     let additionalGas = 10000
     // To check if the transaction is successfull with the given safeTxGas we try to set a gasLimit so that only safeTxGas is available,
     // when `execute` is triggered in `requiredTxGas`. If the response is `0x` then the inner transaction reverted and we need to increase the amount.
     for (let i = 0; i < 100; i++) {
-        try {
-            let estimateResponse = await provider.call({
-              to: safeContract.address,
-              from: safeContract.address,
-              data: estimateData,
-              gasPrice: 0,
-              gasLimit: txGasEstimate + estimateDataGasCosts + 21000 // gasLimit: We add 21k for base tx costs
-            })
+      try {
+        const estimateResponse = await provider.call({
+          to: safeContract.address,
+          from: safeContract.address,
+          data: estimateData,
+          gasPrice: 0,
+          gasLimit: txGasEstimate + estimateDataGasCosts + 21000, // gasLimit: We add 21k for base tx costs
+        })
 
-            if (estimateResponse != "0x") break
-        } catch(e) {
-            console.log("    Could simulate cause: " + e)
-        }
+        if (estimateResponse !== '0x') break
+      } catch (e) {
+        logger.log('    Could simulate cause: ', e)
+      }
 
-        txGasEstimate += additionalGas
-        additionalGas *= 2
+      txGasEstimate += additionalGas
+      additionalGas *= 2
     }
   }
 
-  console.log("    Tx Gas estimate: " + txGasEstimate)
+  logger.log(`    Tx Gas estimate: ${txGasEstimate}`)
 
   return txGasEstimate
 }
 
-module.exports = (config) => async (safeAddress, { to, value, data, operation, nonce}) => {
+module.exports = (config) => async (safeAddress, { to, value, data, operation, nonce }) => {
   const {
     gasPrice,
     threshold,
     wallet,
     provider,
-    contracts: {
-      gnosisSafeAbi
-    }
+    logger,
+    contracts: { gnosisSafeAbi },
   } = config
 
   const safeContract = new ethers.Contract(safeAddress, gnosisSafeAbi, wallet)
 
-  const transactionNonce = nonce ? nonce : await safeContract.nonce()
+  const transactionNonce = nonce || (await safeContract.nonce())
 
-  let txGasEstimate = await getTxGasEstimate(provider, safeContract, to, value, data, operation)
+  logger.log('transactionNonce', transactionNonce)
 
-  let baseGasEstimate = estimateBaseGas(
+  const txGasEstimate = await getTxGasEstimate(
+    safeContract,
+    to,
+    value,
+    data,
+    operation,
+    provider,
+    logger
+  )
+
+  const baseGasEstimate = estimateBaseGas(
     safeContract,
     to,
     value,
@@ -80,7 +95,7 @@ module.exports = (config) => async (safeAddress, { to, value, data, operation, n
     transactionNonce
   )
 
-  console.log("    Base Gas estimate: " + baseGasEstimate)
+  logger.log(`    Base Gas estimate: ${baseGasEstimate}`)
 
   const transactionHash = await safeContract.getTransactionHash(
     to,
@@ -95,7 +110,7 @@ module.exports = (config) => async (safeAddress, { to, value, data, operation, n
     transactionNonce
   )
 
-  console.log("    Transaction Hash: ", transactionHash)
+  logger.log('    Transaction Hash: ', transactionHash)
 
   return {
     transactionHash,
@@ -106,8 +121,7 @@ module.exports = (config) => async (safeAddress, { to, value, data, operation, n
       operation,
       txGasEstimate,
       baseGasEstimate,
-      transactionNonce
-    }
+      transactionNonce,
+    },
   }
-
 }
