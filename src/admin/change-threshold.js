@@ -1,28 +1,19 @@
+// changeThreshold
 const assert = require('assert')
 const ethers = require('ethers')
-const { SENTINEL_OWNERS, CALL } = require('../util/constants')
+const { CALL } = require('../util/constants')
 
-module.exports = (toolchain) => async (safeAddress, oldOwner, newOwner) => {
+module.exports = (toolchain) => async (safeAddress, threshold) => {
   assert(
     safeAddress &&
       ethers.utils.isAddress(safeAddress) &&
       safeAddress !== ethers.constants.AddressZero,
     `Invalid safe address`
   )
-  assert(
-    oldOwner &&
-      ethers.utils.isAddress(oldOwner) &&
-      oldOwner !== ethers.constants.AddressZero &&
-      oldOwner !== SENTINEL_OWNERS,
-    `Invalid owner`
-  )
-  assert(
-    newOwner &&
-      ethers.utils.isAddress(newOwner) &&
-      newOwner !== ethers.constants.AddressZero &&
-      newOwner !== SENTINEL_OWNERS,
-    `Invalid owner`
-  )
+
+  assert(threshold, `Threshold needs to be greater than 0`)
+
+  const thresholdToSend = ethers.BigNumber.from(threshold)
 
   const {
     wallet,
@@ -32,16 +23,10 @@ module.exports = (toolchain) => async (safeAddress, oldOwner, newOwner) => {
 
   const currentOwners = (await safeContract.getOwners()).map((o) => o.toLowerCase())
 
-  assert(currentOwners.includes(oldOwner.toLowerCase()), `Not an owner`)
-  assert(!currentOwners.includes(newOwner.toLowerCase()), `Address is already an owner`)
+  assert(thresholdToSend.lte(currentOwners.length), 'Threshold cannot exceed owner count')
 
-  const i = currentOwners.indexOf(oldOwner.toLowerCase())
-  const prevOwner = i > 0 ? currentOwners[i - 1] : SENTINEL_OWNERS
-
-  const encodedFunctionData = safeContract.interface.encodeFunctionData('swapOwner', [
-    prevOwner,
-    oldOwner,
-    newOwner,
+  const encodedFunctionData = safeContract.interface.encodeFunctionData('changeThreshold', [
+    thresholdToSend,
   ])
 
   const { transactionHash, txData } = await toolchain.commands.transactionData(safeAddress, {

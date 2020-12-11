@@ -574,4 +574,107 @@ describe('Admin', () => {
       }
     })
   })
+  describe('#changeThreshold', () => {
+    it('Should throw when using zero address for safe', async () => {
+      try {
+        await vegetaToolchain.admin.changeThreshold(ethers.constants.AddressZero, 1)
+        expect(false).to.equal(true)
+      } catch (error) {
+        expect(error.message).to.equal('Invalid safe address')
+      }
+    })
+
+    it('Should throw when using invalid address for safe', async () => {
+      try {
+        await vegetaToolchain.admin.changeThreshold('invalid address', 1)
+        expect(false).to.equal(true)
+      } catch (error) {
+        expect(error.message).to.equal('Invalid safe address')
+      }
+    })
+
+    it('Should throw when using undefined threshold', async () => {
+      try {
+        await vegetaToolchain.admin.changeThreshold(safeAddress)
+        expect(false).to.equal(true)
+      } catch (error) {
+        expect(error.message).to.equal('Threshold needs to be greater than 0')
+      }
+    })
+
+    it('Should throw when using 0 threshold', async () => {
+      try {
+        await vegetaToolchain.admin.changeThreshold(safeAddress, 0)
+        expect(false).to.equal(true)
+      } catch (error) {
+        expect(error.message).to.equal('Threshold needs to be greater than 0')
+      }
+    })
+
+    it('Should throw when gt owners', async () => {
+      try {
+        await vegetaToolchain.admin.changeThreshold(safeAddress, 3)
+        expect(false).to.equal(true)
+      } catch (error) {
+        expect(error.message).to.equal('Threshold cannot exceed owner count')
+      }
+    })
+
+    it('Should not throw when params are ok', async () => {
+      try {
+        await vegetaToolchain.admin.changeThreshold(safeAddress, 2)
+        expect(true).to.equal(true)
+      } catch (error) {
+        console.log('ERROR', error)
+        expect(false).to.equal(true)
+      }
+    })
+
+    it('Should approve changeThreshold by vegeta', async () => {
+      try {
+        const changeThresholddTx = await vegetaToolchain.admin.changeThreshold(safeAddress, 2)
+
+        const approveTx = await changeThresholddTx.approve()
+        const {
+          events: [{ event, args }],
+        } = await approveTx.wait()
+
+        expect(event).to.equal('ApproveHash')
+        expect(args.approvedHash).to.equal(changeThresholddTx.transactionHash)
+        expect(args.owner).to.equal(vegeta.address)
+      } catch (error) {
+        expect(false).to.equal(true)
+      }
+    })
+
+    it('Should execute changeThreshold', async () => {
+      try {
+        const {
+          contracts: { gnosisSafeAbi },
+        } = kakarotoToolchain.config
+        const safeContract = new ethers.Contract(safeAddress, gnosisSafeAbi, provider)
+        const thresholdBefore = await safeContract.getThreshold()
+        expect(thresholdBefore.toString()).to.equals('1')
+
+        const changeThresholdTx = await kakarotoToolchain.admin.changeThreshold(safeAddress, 2)
+
+        const executeTx = await changeThresholdTx.execute([vegeta.address])
+        const {
+          events: [change, executionSuccess],
+        } = await executeTx.wait()
+
+        expect(change.event).to.equal('ChangedThreshold')
+        expect(change.args.threshold).to.equal('2')
+
+        expect(executionSuccess.event).to.equal('ExecutionSuccess')
+        expect(executionSuccess.args.txHash).to.equal(changeThresholdTx.transactionHash)
+
+        const thresholdAfter = await safeContract.getThreshold()
+        expect(thresholdAfter.toString()).to.equals('2')
+      } catch (error) {
+        console.log('ERROR', error)
+        expect(false).to.equal(true)
+      }
+    })
+  })
 })
