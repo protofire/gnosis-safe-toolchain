@@ -21,15 +21,22 @@ module.exports = (toolchain) => async (safeAddress, owner, threshold) => {
     safeContract.getThreshold(),
   ])
 
-  assert(!currentOwners.includes(owner.toLowerCase()), `Address is already an owner`)
+  assert(currentOwners.includes(owner.toLowerCase()), `Not an owner`)
+
+  const prevOwner = currentOwners[currentOwners.indexOf(owner.toLowerCase()) - 1]
 
   if (typeof threshold !== 'undefined') {
     thresholdToSend = ethers.BigNumber.from(threshold)
-    assert(thresholdToSend.gt(0), `Threshold needs to be greater than 0`)
-    assert(thresholdToSend.lte(currentOwners.length + 1), `Threshold cannot exceed owner count`)
   }
 
-  const encodedFunctionData = safeContract.interface.encodeFunctionData('addOwnerWithThreshold', [
+  assert(thresholdToSend.gt(0), `Threshold needs to be greater than 0`)
+  assert(
+    thresholdToSend.lte(currentOwners.length - 1),
+    `New owner count needs to be larger than new threshold`
+  )
+
+  const encodedFunctionData = safeContract.interface.encodeFunctionData('removeOwner', [
+    prevOwner,
     owner,
     thresholdToSend,
   ])

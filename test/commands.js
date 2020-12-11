@@ -87,8 +87,6 @@ describe('Commands', () => {
     kakarotoToolchain = SafeToolchain({
       provider,
       walletPk: pks[1],
-      owners: [vegeta.address, kakaroto.address, karpincho.address],
-      threshold: 2,
       gasPrice: '30',
       networkType: 'ethereum',
       networkId: 5,
@@ -123,8 +121,6 @@ describe('Commands', () => {
     karpinchoToolchain = SafeToolchain({
       provider,
       walletPk: pks[2],
-      owners: [vegeta.address, kakaroto.address, karpincho.address],
-      threshold: 2,
       gasPrice: '30',
       networkType: 'ethereum',
       networkId: 5,

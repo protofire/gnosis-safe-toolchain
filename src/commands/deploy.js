@@ -57,7 +57,11 @@ const getCreationData = async (owners, threshold, gasToken, creationNonce, confi
     ethers.constants.AddressZero,
   ])
 
-  const proxyCreationCode = await gnosisSafeProxyFactoryContract.proxyCreationCode()
+  const block = await provider.getBlock('latest')
+  const proxyCreationCode = await gnosisSafeProxyFactoryContract.proxyCreationCode({
+    gasLimit: block.gasLimit - 10000,
+  })
+  // const proxyCreationCode = await gnosisSafeProxyFactoryContract.proxyCreationCode()
   assert(proxyCreationCode, gnosisSafeProxy.bytecode)
 
   const constructorData = abi.rawEncode(['address'], [gnosisSafeAddress]).toString('hex')
