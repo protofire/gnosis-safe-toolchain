@@ -28,7 +28,7 @@ const Test = require('../artifacts/contracts/Test.sol/Test.json')
 let testContract
 let encodedFunctionData
 
-describe('GnosisSafe Toolchain', () => {
+describe('Commands', () => {
   before(async () => {
     ;[vegeta, kakaroto, karpincho] = await ethers.getSigners()
 
@@ -38,8 +38,6 @@ describe('GnosisSafe Toolchain', () => {
     vegetaToolchain = SafeToolchain({
       provider,
       walletPk: pks[0],
-      owners: [vegeta.address, kakaroto.address, karpincho.address],
-      threshold: 2,
       gasPrice: '30',
       networkType: 'ethereum',
       networkId: 5,
@@ -50,6 +48,7 @@ describe('GnosisSafe Toolchain', () => {
     const creationNonce = new Date().getTime()
     const data = await getCreationData(vegetaToolchain.config)(
       [vegeta.address, kakaroto.address, karpincho.address],
+      2,
       creationNonce
     )
 
@@ -58,6 +57,7 @@ describe('GnosisSafe Toolchain', () => {
 
     safeAddress = await vegetaToolchain.commands.deploy(
       [vegeta.address, kakaroto.address, karpincho.address],
+      2,
       data.creationNonce
     )
 
