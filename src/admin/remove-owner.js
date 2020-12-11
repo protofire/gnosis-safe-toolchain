@@ -3,9 +3,17 @@ const ethers = require('ethers')
 const { SENTINEL_OWNERS, CALL } = require('../util/constants')
 
 module.exports = (toolchain) => async (safeAddress, owner, threshold) => {
-  assert(safeAddress && safeAddress !== ethers.constants.AddressZero, `Invalid safe address`)
   assert(
-    owner && owner !== ethers.constants.AddressZero && owner !== SENTINEL_OWNERS,
+    safeAddress &&
+      ethers.utils.isAddress(safeAddress) &&
+      safeAddress !== ethers.constants.AddressZero,
+    `Invalid safe address`
+  )
+  assert(
+    owner &&
+      ethers.utils.isAddress(owner) &&
+      owner !== ethers.constants.AddressZero &&
+      owner !== SENTINEL_OWNERS,
     `Invalid owner`
   )
 
@@ -23,7 +31,8 @@ module.exports = (toolchain) => async (safeAddress, owner, threshold) => {
 
   assert(currentOwners.includes(owner.toLowerCase()), `Not an owner`)
 
-  const prevOwner = currentOwners[currentOwners.indexOf(owner.toLowerCase()) - 1]
+  const i = currentOwners.indexOf(owner.toLowerCase())
+  const prevOwner = i > 0 ? currentOwners[i - 1] : SENTINEL_OWNERS
 
   if (typeof threshold !== 'undefined') {
     thresholdToSend = ethers.BigNumber.from(threshold)

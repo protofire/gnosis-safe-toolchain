@@ -71,6 +71,15 @@ describe('Admin', () => {
       }
     })
 
+    it('Should throw when using non address for safe', async () => {
+      try {
+        await vegetaToolchain.admin.addOwnerWithThreshold('invalid address', karpincho.address, 2)
+        expect(false).to.equal(true)
+      } catch (error) {
+        expect(error.message).to.equal('Invalid safe address')
+      }
+    })
+
     it('Should throw when using zero address for owner', async () => {
       try {
         await vegetaToolchain.admin.addOwnerWithThreshold(
@@ -78,6 +87,15 @@ describe('Admin', () => {
           ethers.constants.AddressZero,
           2
         )
+        expect(false).to.equal(true)
+      } catch (error) {
+        expect(error.message).to.equal('Invalid owner')
+      }
+    })
+
+    it('Should throw when using invalid address for owner', async () => {
+      try {
+        await vegetaToolchain.admin.addOwnerWithThreshold(safeAddress, 'invalid address', 2)
         expect(false).to.equal(true)
       } catch (error) {
         expect(error.message).to.equal('Invalid owner')
@@ -200,9 +218,27 @@ describe('Admin', () => {
       }
     })
 
+    it('Should throw when using invalid address for safe', async () => {
+      try {
+        await vegetaToolchain.admin.removeOwner('invalid address', karpincho.address, 2)
+        expect(false).to.equal(true)
+      } catch (error) {
+        expect(error.message).to.equal('Invalid safe address')
+      }
+    })
+
     it('Should throw when using zero address for owner', async () => {
       try {
         await vegetaToolchain.admin.removeOwner(safeAddress, ethers.constants.AddressZero, 2)
+        expect(false).to.equal(true)
+      } catch (error) {
+        expect(error.message).to.equal('Invalid owner')
+      }
+    })
+
+    it('Should throw when using invalid address for owner', async () => {
+      try {
+        await vegetaToolchain.admin.removeOwner(safeAddress, 'invalid address', 2)
         expect(false).to.equal(true)
       } catch (error) {
         expect(error.message).to.equal('Invalid owner')
@@ -362,6 +398,176 @@ describe('Admin', () => {
 
         const owners = (await safeContract.getOwners()).map((o) => o.toLowerCase())
         expect(owners.includes(kakaroto.address.toLowerCase())).to.equals(false)
+      } catch (error) {
+        console.log('ERROR', error)
+        expect(false).to.equal(true)
+      }
+    })
+  })
+  describe('#swapOwner', () => {
+    it('Should throw when using zero address for safe', async () => {
+      try {
+        await vegetaToolchain.admin.swapOwner(ethers.constants.AddressZero, karpincho.address, 2)
+        expect(false).to.equal(true)
+      } catch (error) {
+        expect(error.message).to.equal('Invalid safe address')
+      }
+    })
+
+    it('Should throw when using invalid address for safe', async () => {
+      try {
+        await vegetaToolchain.admin.swapOwner('invalid address', karpincho.address, 2)
+        expect(false).to.equal(true)
+      } catch (error) {
+        expect(error.message).to.equal('Invalid safe address')
+      }
+    })
+
+    it('Should throw when using zero address for oldOwner', async () => {
+      try {
+        await vegetaToolchain.admin.swapOwner(
+          safeAddress,
+          ethers.constants.AddressZero,
+          kakaroto.address
+        )
+        expect(false).to.equal(true)
+      } catch (error) {
+        expect(error.message).to.equal('Invalid owner')
+      }
+    })
+
+    it('Should throw when using invalid address for oldOwner', async () => {
+      try {
+        await vegetaToolchain.admin.swapOwner(safeAddress, 'invalid address', kakaroto.address)
+        expect(false).to.equal(true)
+      } catch (error) {
+        expect(error.message).to.equal('Invalid owner')
+      }
+    })
+
+    it('Should throw when using SENTINEL_OWNERS for oldOwner', async () => {
+      try {
+        await vegetaToolchain.admin.swapOwner(safeAddress, SENTINEL_OWNERS, kakaroto.address)
+        expect(false).to.equal(true)
+      } catch (error) {
+        expect(error.message).to.equal('Invalid owner')
+      }
+    })
+
+    it('Should throw when using zero address for newOwner', async () => {
+      try {
+        await vegetaToolchain.admin.swapOwner(
+          safeAddress,
+          karpincho.address,
+          ethers.constants.AddressZero
+        )
+        expect(false).to.equal(true)
+      } catch (error) {
+        expect(error.message).to.equal('Invalid owner')
+      }
+    })
+
+    it('Should throw when using invalid address for newOwner', async () => {
+      try {
+        await vegetaToolchain.admin.swapOwner(safeAddress, karpincho.address, 'invalid address')
+        expect(false).to.equal(true)
+      } catch (error) {
+        expect(error.message).to.equal('Invalid owner')
+      }
+    })
+
+    it('Should throw when using SENTINEL_OWNERS for newOwner', async () => {
+      try {
+        await vegetaToolchain.admin.swapOwner(safeAddress, karpincho.address, SENTINEL_OWNERS)
+        expect(false).to.equal(true)
+      } catch (error) {
+        expect(error.message).to.equal('Invalid owner')
+      }
+    })
+
+    it('Should throw when oldOwner not included', async () => {
+      try {
+        await vegetaToolchain.admin.swapOwner(safeAddress, popono.address, kakaroto.address)
+        expect(false).to.equal(true)
+      } catch (error) {
+        expect(error.message).to.equal('Not an owner')
+      }
+    })
+
+    it('Should throw when newOwner is included', async () => {
+      try {
+        await vegetaToolchain.admin.swapOwner(safeAddress, karpincho.address, vegeta.address)
+        expect(false).to.equal(true)
+      } catch (error) {
+        expect(error.message).to.equal('Address is already an owner')
+      }
+    })
+
+    it('Should not throw when params are ok', async () => {
+      try {
+        await vegetaToolchain.admin.swapOwner(safeAddress, karpincho.address, kakaroto.address)
+        expect(true).to.equal(true)
+      } catch (error) {
+        console.log('ERROR', error)
+        expect(false).to.equal(true)
+      }
+    })
+
+    it('Should approve swapOwner by vegeta', async () => {
+      try {
+        const swapOwnerdTx = await vegetaToolchain.admin.swapOwner(
+          safeAddress,
+          karpincho.address,
+          kakaroto.address
+        )
+
+        const approveTx = await swapOwnerdTx.approve()
+        const {
+          events: [{ event, args }],
+        } = await approveTx.wait()
+
+        expect(event).to.equal('ApproveHash')
+        expect(args.approvedHash).to.equal(swapOwnerdTx.transactionHash)
+        expect(args.owner).to.equal(vegeta.address)
+      } catch (error) {
+        expect(false).to.equal(true)
+      }
+    })
+
+    it('Should execute swapOwner', async () => {
+      try {
+        const {
+          contracts: { gnosisSafeAbi },
+        } = kakarotoToolchain.config
+        const safeContract = new ethers.Contract(safeAddress, gnosisSafeAbi, provider)
+        const ownersBefore = (await safeContract.getOwners()).map((o) => o.toLowerCase())
+
+        expect(ownersBefore.includes(kakaroto.address.toLowerCase())).to.equals(false)
+        expect(ownersBefore.includes(karpincho.address.toLowerCase())).to.equals(true)
+
+        const swapOwnerTx = await kakarotoToolchain.admin.swapOwner(
+          safeAddress,
+          karpincho.address,
+          kakaroto.address
+        )
+
+        const executeTx = await swapOwnerTx.execute([vegeta.address])
+        const {
+          events: [removeOwner, addOwner, executionSuccess],
+        } = await executeTx.wait()
+
+        expect(removeOwner.event).to.equal('RemovedOwner')
+        expect(removeOwner.args.owner).to.equal(karpincho.address)
+
+        expect(addOwner.event).to.equal('AddedOwner')
+        expect(addOwner.args.owner).to.equal(kakaroto.address)
+
+        expect(executionSuccess.event).to.equal('ExecutionSuccess')
+        expect(executionSuccess.args.txHash).to.equal(swapOwnerTx.transactionHash)
+
+        const owners = (await safeContract.getOwners()).map((o) => o.toLowerCase())
+        expect(owners.includes(kakaroto.address.toLowerCase())).to.equals(true)
+        expect(owners.includes(karpincho.address.toLowerCase())).to.equals(false)
       } catch (error) {
         console.log('ERROR', error)
         expect(false).to.equal(true)

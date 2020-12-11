@@ -2,7 +2,7 @@ const assert = require('assert')
 const ethers = require('ethers')
 const { SENTINEL_OWNERS, CALL } = require('../util/constants')
 
-module.exports = (toolchain) => async (safeAddress, owner, threshold) => {
+module.exports = (toolchain) => async (safeAddress, oldOwner, newOwner) => {
   assert(
     safeAddress &&
       ethers.utils.isAddress(safeAddress) &&
@@ -10,10 +10,17 @@ module.exports = (toolchain) => async (safeAddress, owner, threshold) => {
     `Invalid safe address`
   )
   assert(
-    owner &&
-      ethers.utils.isAddress(owner) &&
-      owner !== ethers.constants.AddressZero &&
-      owner !== SENTINEL_OWNERS,
+    oldOwner &&
+      ethers.utils.isAddress(oldOwner) &&
+      oldOwner !== ethers.constants.AddressZero &&
+      oldOwner !== SENTINEL_OWNERS,
+    `Invalid owner`
+  )
+  assert(
+    newOwner &&
+      ethers.utils.isAddress(newOwner) &&
+      newOwner !== ethers.constants.AddressZero &&
+      newOwner !== SENTINEL_OWNERS,
     `Invalid owner`
   )
 
@@ -23,23 +30,20 @@ module.exports = (toolchain) => async (safeAddress, owner, threshold) => {
   } = toolchain.config
   const safeContract = new ethers.Contract(safeAddress, gnosisSafeAbi, wallet)
 
-  // eslint-disable-next-line prefer-const
-  let [currentOwners, thresholdToSend] = await Promise.all([
-    safeContract.getOwners().then((owners) => owners.map((o) => o.toLowerCase())),
-    safeContract.getThreshold(),
-  ])
+  const currentOwners = (await safeContract.getOwners()).map((o) => o.toLowerCase())
 
-  assert(!currentOwners.includes(owner.toLowerCase()), `Address is already an owner`)
+  assert(currentOwners.includes(oldOwner.toLowerCase()), `Not an owner`)
+  assert(!currentOwners.includes(newOwner.toLowerCase()), `Address is already an owner`)
 
-  if (typeof threshold !== 'undefined') {
-    thresholdToSend = ethers.BigNumber.from(threshold)
-    assert(thresholdToSend.gt(0), `Threshold needs to be greater than 0`)
-    assert(thresholdToSend.lte(currentOwners.length + 1), `Threshold cannot exceed owner count`)
-  }
+  const i = currentOwners.indexOf(oldOwner.toLowerCase())
+  const prevOwner = i > 0 ? currentOwners[i - 1] : SENTINEL_OWNERS
 
-  const encodedFunctionData = safeContract.interface.encodeFunctionData('addOwnerWithThreshold', [
-    owner,
-    thresholdToSend,
+  console.log()
+
+  const encodedFunctionData = safeContract.interface.encodeFunctionData('swapOwner', [
+    prevOwner,
+    oldOwner,
+    newOwner,
   ])
 
   const { transactionHash, txData } = await toolchain.commands.transactionData(safeAddress, {
