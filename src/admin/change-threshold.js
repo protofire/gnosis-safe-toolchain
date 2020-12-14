@@ -1,4 +1,3 @@
-// changeThreshold
 const assert = require('assert')
 const ethers = require('ethers')
 const { CALL } = require('../util/constants')

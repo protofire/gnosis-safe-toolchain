@@ -57,6 +57,34 @@ describe('Admin', () => {
     await transferTs.wait()
   })
 
+  describe('#getThreshold #isOwner #getOwners', () => {
+    it('Should get the threshold', async () => {
+      const threshold = await vegetaToolchain.admin.getThreshold(safeAddress)
+      expect(threshold.toString()).to.equal('1')
+    })
+
+    it('Should get if a given address is an owner', async () => {
+      const isOwner = await vegetaToolchain.admin.isOwner(safeAddress, vegeta.address)
+      const isNotOwner = await vegetaToolchain.admin.isOwner(safeAddress, karpincho.address)
+
+      console.log('isOwner', isOwner)
+      console.log('isNotOwner', isNotOwner)
+
+      expect(isOwner).to.equal(true)
+      expect(isNotOwner).to.equal(false)
+    })
+
+    it('Should get the list of owners', async () => {
+      const owners = (await vegetaToolchain.admin.getOwners(safeAddress)).map((o) =>
+        o.toLowerCase()
+      )
+
+      ;[vegeta.address.toLowerCase(), kakaroto.address.toLowerCase()].forEach((address, i) => {
+        expect(owners[i]).to.equal(address)
+      })
+    })
+  })
+
   describe('#addOwnerWithThreshold', () => {
     it('Should throw when using zero address for safe', async () => {
       try {
