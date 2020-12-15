@@ -35,9 +35,9 @@ module.exports = (config) => async (
     operation,
     txGasEstimate,
     baseGasEstimate,
-    gasPrice,
-    ethers.constants.AddressZero, // TODO - txGasToken make this a param
-    ethers.constants.AddressZero, // TODO - refundReceiver make this a param
+    0, // Transactions without refund
+    ethers.constants.AddressZero,
+    ethers.constants.AddressZero,
     sigs,
     {
       gasPrice,

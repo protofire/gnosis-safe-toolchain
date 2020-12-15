@@ -126,12 +126,6 @@ describe('Commands', () => {
       networkId: 5,
     })
 
-    const transferTs = await karpinchoToolchain.config.wallet.sendTransaction({
-      to: safeAddress,
-      value: ethers.utils.parseUnits('2'),
-    })
-    await transferTs.wait()
-
     const executeTx = await karpinchoToolchain.commands.executeTransaction(safeAddress, {
       ...txData,
       approvers: [vegeta.address, kakaroto.address],

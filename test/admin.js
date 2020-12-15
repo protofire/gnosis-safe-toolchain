@@ -49,12 +49,6 @@ describe('Admin', () => {
     })
 
     safeAddress = await vegetaToolchain.commands.deploy([vegeta.address, kakaroto.address], 1)
-
-    const transferTs = await vegetaToolchain.config.wallet.sendTransaction({
-      to: safeAddress,
-      value: ethers.utils.parseUnits('5'),
-    })
-    await transferTs.wait()
   })
 
   describe('#getThreshold #isOwner #getOwners', () => {
