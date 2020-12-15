@@ -121,7 +121,7 @@ describe('Commands', () => {
     karpinchoToolchain = SafeToolchain({
       provider,
       walletPk: pks[2],
-      gasPrice: '30',
+      gasPrice: '20000000000',
       networkType: 'ethereum',
       networkId: 5,
     })

@@ -27,7 +27,7 @@ describe('Admin', () => {
     vegetaToolchain = SafeToolchain({
       provider,
       walletPk: PKS[0],
-      gasPrice: '30',
+      gasPrice: '20000000000',
       networkType: 'ethereum',
       networkId: 5,
     })
@@ -35,7 +35,7 @@ describe('Admin', () => {
     kakarotoToolchain = SafeToolchain({
       provider,
       walletPk: PKS[1],
-      gasPrice: '30',
+      gasPrice: '20000000000',
       networkType: 'ethereum',
       networkId: 5,
     })
@@ -43,7 +43,7 @@ describe('Admin', () => {
     karpinchoToolchain = SafeToolchain({
       provider,
       walletPk: PKS[2],
-      gasPrice: '30',
+      gasPrice: '20000000000',
       networkType: 'ethereum',
       networkId: 5,
     })

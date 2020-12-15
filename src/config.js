@@ -21,7 +21,7 @@ module.exports = (config) => {
 
   return {
     ...config,
-    gasPrice: ethers.utils.parseUnits(config.gasPrice, 'gwei'),
+    gasPrice: ethers.utils.parseUnits(config.gasPrice, 'wei'),
     contracts,
     provider,
     wallet,
