@@ -7,5 +7,5 @@ module.exports = (config) => ({
   deploy: getDeploy(config),
   approveHash: getApproveHash(config),
   executeTransaction: getExecuteTransaction(config),
-  transactionData: getTransactionData(config)
+  transactionData: getTransactionData(config),
 })

@@ -1,15 +1,12 @@
 const ethers = require('ethers')
 
-module.exports = (config) => (safeAddress, hashToApprove) => {
+module.exports = (toolchain) => async (safeAddress) => {
   const {
-    gasPrice,
     wallet,
     contracts: { gnosisSafeAbi },
-  } = config
+  } = toolchain.config
 
   const safeContract = new ethers.Contract(safeAddress, gnosisSafeAbi, wallet)
 
-  return safeContract.approveHash(hashToApprove, {
-    gasPrice,
-  })
+  return safeContract.getThreshold()
 }

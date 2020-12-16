@@ -8,9 +8,43 @@
     "dotenv": "^8.2.0",
     "ethereumjs-abi": "^0.6.8",
     "ethereumjs-util": "6.1.0",
-    "ethers": "^5.0.23"
+    "ethers": "^5.0.23",
+    "logdown": "^3.3.1"
   },
   "scripts": {
-    "test": "node test.js"
+    "test": "hardhat test",
+    "eslint:check": "eslint .",
+    "eslint:fix": "eslint . --fix",
+    "prettier": "prettier './**/*.js'",
+    "prettier:check": "yarn prettier --check",
+    "prettier:fix": "yarn prettier --write",
+    "lint:fix": "yarn eslint:fix && yarn prettier:fix"
+  },
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.0.1",
+    "@nomiclabs/hardhat-waffle": "^2.0.1",
+    "chai": "^4.2.0",
+    "eslint": "^7.15.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-config-prettier": "^7.0.0",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-mocha": "^8.0.0",
+    "eslint-plugin-prettier": "^3.2.0",
+    "ethereum-waffle": "^3.2.1",
+    "hardhat": "^2.0.4",
+    "husky": "^4.3.5",
+    "lint-staged": "^10.5.3",
+    "prettier": "^2.2.1"
+  },
+  "lint-staged": {
+    "**/*.js": [
+      "eslint --fix",
+      "prettier --write"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged --allow-empty"
+    }
   }
 }

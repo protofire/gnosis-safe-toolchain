@@ -1,44 +1,46 @@
 const assert = require('assert')
 const ethers = require('ethers')
 
-module.exports = (config) => async (safeAddress, {to, value, data, operation, txGasEstimate, baseGasEstimate, approvers}) => {
+module.exports = (config) => async (
+  safeAddress,
+  { to, value, data, operation, txGasEstimate, baseGasEstimate, approvers }
+) => {
   const {
     gasPrice,
-    threshold,
     wallet,
-    contracts: {
-      gnosisSafeAbi
-    }
+    contracts: { gnosisSafeAbi },
   } = config
-
-  assert(approvers.length >= threshold, 'too few approvers')
 
   const safeContract = new ethers.Contract(safeAddress, gnosisSafeAbi, wallet)
 
-  const sigs = '0x' + approvers.slice(0, threshold)
-    .sort()
-    .map(account => "000000000000000000000000" + account.replace('0x', '') + "0000000000000000000000000000000000000000000000000000000000000000" + "01")
-    .join('')
+  const threshold = await safeContract.getThreshold()
+  assert(threshold.lte(approvers.length), 'too few approvers')
 
-  let executeTransactionTx = await safeContract.execTransaction(
+  const sigs = `0x${approvers
+    .slice(0, threshold)
+    .sort()
+    .map(
+      (account) =>
+        `000000000000000000000000${account.replace(
+          '0x',
+          ''
+        )}000000000000000000000000000000000000000000000000000000000000000001`
+    )
+    .join('')}`
+
+  return safeContract.execTransaction(
     to,
     value,
     data,
     operation,
     txGasEstimate,
     baseGasEstimate,
-    gasPrice,
-    ethers.constants.AddressZero, // TODO - txGasToken make this a param
-    ethers.constants.AddressZero, // TODO - refundReceiver make this a param
+    0, // Transactions without refund
+    ethers.constants.AddressZero,
+    ethers.constants.AddressZero,
     sigs,
     {
-      gasPrice: gasPrice,
+      gasPrice,
     }
   )
-
-  const executeTransactionRes = await executeTransactionTx.wait()
-
-  console.log("    executeTransactionRes:", executeTransactionRes)
-
-  return executeTransactionRes
 }

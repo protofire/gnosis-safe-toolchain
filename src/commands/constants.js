@@ -3,5 +3,5 @@ const DELEGATECALL = 1
 
 module.exports = {
   CALL,
-  DELEGATECALL
+  DELEGATECALL,
 }

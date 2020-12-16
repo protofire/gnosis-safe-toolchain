@@ -1,23 +1,30 @@
 const assert = require('assert')
 const ethers = require('ethers')
+const logger = require('logdown')('GnosisSafeToolchain')
+const getContracts = require('./contracts')
 
-// { rpcUrl, walletPk, owners, threshold, gasPrice, networkType, networkId }
+// { [rpcUrl | provider], walletPk, gasPrice, networkType, networkId, logger }
 module.exports = (config) => {
-  const configKeys = ['rpcUrl', 'walletPk', 'owners', 'threshold', 'gasPrice', 'networkType', 'networkId']
-  configKeys.forEach(key => {
+  assert(config.rpcUrl || config.provider, `missing rpcUrl or provider`)
+
+  const configKeys = ['walletPk', 'gasPrice', 'networkType', 'networkId']
+  configKeys.forEach((key) => {
     assert(config[key], `missing configuration param ${key}`)
-  });
+  })
 
-  const contracts = require('./contracts')(config.networkType, config.networkId)
+  const contracts = getContracts(config.networkType, config.networkId)
 
-  const provider = new ethers.providers.JsonRpcProvider(config.rpcUrl)
+  const provider = config.provider || new ethers.providers.JsonRpcProvider(config.rpcUrl)
   const wallet = new ethers.Wallet(config.walletPk, provider)
+
+  logger.state.isEnabled = !!config.logger
 
   return {
     ...config,
-    gasPrice: ethers.utils.parseUnits(config.gasPrice, 'gwei'),
+    gasPrice: ethers.utils.parseUnits(config.gasPrice, 'wei'),
     contracts,
     provider,
     wallet,
+    logger,
   }
 }
