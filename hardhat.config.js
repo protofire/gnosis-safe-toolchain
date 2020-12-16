@@ -1,6 +1,10 @@
 /* eslint-disable import/no-extraneous-dependencies */
-
+require('dotenv').config()
 require('@nomiclabs/hardhat-waffle')
+
+if (!process.env.RPC_URL) {
+  throw new Error('Missing RPC_URL')
+}
 
 const { PKS } = require('./test/utils')
 
@@ -8,7 +12,7 @@ module.exports = {
   networks: {
     hardhat: {
       forking: {
-        url: 'https://eth-goerli.alchemyapi.io/v2/p1pO1NsKkn0eZ3xSiih_ftF7yXgCWb_H',
+        url: process.env.RPC_URL,
       },
       gas: 'auto',
       accounts: PKS.map((privateKey) => ({
