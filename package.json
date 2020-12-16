@@ -1,8 +1,10 @@
 {
-  "name": "gnosis-safe-toolchain",
+  "name": "@protofire/gnosis-safe-toolchain",
   "version": "0.1.0",
   "main": "index.js",
+  "repository": "https://github.com/protofire/gnosis-safe-toolchain",
   "license": "MIT",
+  "author": "Lisandro Corbalan",
   "dependencies": {
     "@gnosis.pm/safe-contracts": "1.2.0",
     "dotenv": "^8.2.0",
