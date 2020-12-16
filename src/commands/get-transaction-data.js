@@ -57,8 +57,6 @@ async function getTxGasEstimate(safeContract, to, value, data, operation, provid
 
 module.exports = (config) => async (safeAddress, { to, value, data, operation, nonce }) => {
   const {
-    gasPrice,
-    threshold,
     wallet,
     provider,
     logger,
@@ -66,6 +64,8 @@ module.exports = (config) => async (safeAddress, { to, value, data, operation, n
   } = config
 
   const safeContract = new ethers.Contract(safeAddress, gnosisSafeAbi, wallet)
+
+  const threshold = await safeContract.getThreshold()
 
   const transactionNonce = nonce || (await safeContract.nonce())
 
@@ -88,7 +88,7 @@ module.exports = (config) => async (safeAddress, { to, value, data, operation, n
     data,
     operation,
     txGasEstimate,
-    gasPrice,
+    0, // Transactions without refund
     ethers.constants.AddressZero,
     ethers.constants.AddressZero,
     threshold,
@@ -104,7 +104,7 @@ module.exports = (config) => async (safeAddress, { to, value, data, operation, n
     operation,
     txGasEstimate,
     baseGasEstimate,
-    gasPrice,
+    0, // Transactions without refund
     ethers.constants.AddressZero,
     ethers.constants.AddressZero,
     transactionNonce

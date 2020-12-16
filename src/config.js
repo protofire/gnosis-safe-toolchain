@@ -3,11 +3,11 @@ const ethers = require('ethers')
 const logger = require('logdown')('GnosisSafeToolchain')
 const getContracts = require('./contracts')
 
-// { [rpcUrl | provider], walletPk, owners, threshold, gasPrice, networkType, networkId, logger }
+// { [rpcUrl | provider], walletPk, gasPrice, networkType, networkId, logger }
 module.exports = (config) => {
   assert(config.rpcUrl || config.provider, `missing rpcUrl or provider`)
 
-  const configKeys = ['walletPk', 'threshold', 'gasPrice', 'networkType', 'networkId']
+  const configKeys = ['walletPk', 'gasPrice', 'networkType', 'networkId']
   configKeys.forEach((key) => {
     assert(config[key], `missing configuration param ${key}`)
   })
@@ -21,7 +21,7 @@ module.exports = (config) => {
 
   return {
     ...config,
-    gasPrice: ethers.utils.parseUnits(config.gasPrice, 'gwei'),
+    gasPrice: ethers.utils.parseUnits(config.gasPrice, 'wei'),
     contracts,
     provider,
     wallet,

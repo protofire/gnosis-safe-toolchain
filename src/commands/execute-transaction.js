@@ -7,14 +7,14 @@ module.exports = (config) => async (
 ) => {
   const {
     gasPrice,
-    threshold,
     wallet,
     contracts: { gnosisSafeAbi },
   } = config
 
-  assert(approvers.length >= threshold, 'too few approvers')
-
   const safeContract = new ethers.Contract(safeAddress, gnosisSafeAbi, wallet)
+
+  const threshold = await safeContract.getThreshold()
+  assert(threshold.lte(approvers.length), 'too few approvers')
 
   const sigs = `0x${approvers
     .slice(0, threshold)
@@ -35,9 +35,9 @@ module.exports = (config) => async (
     operation,
     txGasEstimate,
     baseGasEstimate,
-    gasPrice,
-    ethers.constants.AddressZero, // TODO - txGasToken make this a param
-    ethers.constants.AddressZero, // TODO - refundReceiver make this a param
+    0, // Transactions without refund
+    ethers.constants.AddressZero,
+    ethers.constants.AddressZero,
     sigs,
     {
       gasPrice,

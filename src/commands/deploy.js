@@ -3,10 +3,9 @@ const ethers = require('ethers')
 const ethUtil = require('ethereumjs-util')
 const abi = require('ethereumjs-abi')
 
-const getCreationData = async (owners, gasToken, creationNonce, config) => {
+const getCreationData = async (owners, threshold, gasToken, creationNonce, config) => {
   const {
     gasPrice,
-    threshold,
     provider,
     wallet,
     logger,
@@ -58,7 +57,11 @@ const getCreationData = async (owners, gasToken, creationNonce, config) => {
     ethers.constants.AddressZero,
   ])
 
-  const proxyCreationCode = await gnosisSafeProxyFactoryContract.proxyCreationCode()
+  const block = await provider.getBlock('latest')
+  const proxyCreationCode = await gnosisSafeProxyFactoryContract.proxyCreationCode({
+    gasLimit: block.gasLimit - 10000,
+  })
+  // const proxyCreationCode = await gnosisSafeProxyFactoryContract.proxyCreationCode()
   assert(proxyCreationCode, gnosisSafeProxy.bytecode)
 
   const constructorData = abi.rawEncode(['address'], [gnosisSafeAddress]).toString('hex')
@@ -111,47 +114,27 @@ const deployWithCreationData = async (gnosisSafeProxyFactoryContract, creationDa
   return result.events[0].args.proxy
 }
 
-module.exports = (config) => async (owners, creationNonce) => {
+module.exports = (config) => async (owners, threshold, creationNonce) => {
   const {
     gasPrice,
     wallet,
     provider,
-    // threshold,
     logger,
-    contracts: {
-      // gnosisSafeAbi,
-      // gnosisSafeAddress,
-      gnosisSafeProxyFactoryAddress,
-      gnosisSafeProxyFactoryAbi,
-    },
+    contracts: { gnosisSafeProxyFactoryAddress, gnosisSafeProxyFactoryAbi },
   } = config
 
-  // const gnosisSafeContract = new ethers.Contract(gnosisSafeAddress, gnosisSafeAbi, wallet)
   const gnosisSafeProxyFactoryContract = new ethers.Contract(
     gnosisSafeProxyFactoryAddress,
     gnosisSafeProxyFactoryAbi,
     wallet
   )
 
-  // const gnosisSafeData = await gnosisSafeContract.interface.encodeFunctionData('setup',
-  //   [
-  //     owners,
-  //     threshold,
-  //     ethers.constants.AddressZero,
-  //     "0x",
-  //     ethers.constants.AddressZero,
-  //     ethers.constants.AddressZero,
-  //     0,
-  //     ethers.constants.AddressZero
-  //   ]
-  // )
   const creationNonceOrNow = creationNonce || new Date().getTime()
   logger.log('    Creation Nonce: ', creationNonceOrNow)
 
-  // let estimate = ((await gnosisSafeProxyFactoryContract.estimateGas.createProxyWithNonce(gnosisSafeAddress, gnosisSafeData, creationNonce)).mul(gasPrice)).add(14000)
-  // let creationData = await getCreationData(gnosisSafeContract, gnosisSafeProxyFactoryContract, owners, ethers.constants.AddressZero, estimate, creationNonce, config)
   const creationData = await getCreationData(
     owners,
+    threshold,
     ethers.constants.AddressZero,
     creationNonceOrNow,
     config
@@ -179,5 +162,5 @@ module.exports = (config) => async (owners, creationNonce) => {
   return deployWithCreationData(gnosisSafeProxyFactoryContract, creationData, config)
 }
 
-module.exports.getCreationData = (config) => (owners, creationNonce) =>
-  getCreationData(owners, ethers.constants.AddressZero, creationNonce, config)
+module.exports.getCreationData = (config) => (owners, threshold, creationNonce) =>
+  getCreationData(owners, threshold, ethers.constants.AddressZero, creationNonce, config)
