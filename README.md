@@ -50,12 +50,6 @@ TO-DO
 ## Documentation 📄
 TO-DO
 
-## Contributing 🍰
-
-Please make sure to read the [Contributing Guide]() before making a pull request.
-
-Thank you to all the people who already contributed to this project!
-
 ## Licence ⚖️
 
 MIT
