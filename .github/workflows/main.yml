@@ -41,8 +41,6 @@ jobs:
     - uses: actions/setup-node@v1
       with:
         node-version: '12.16'
-      env:
-        RPC_URL: ${{ secrets.RPC_URL }}
 
     - uses: c-hive/gha-yarn-cache@v1
 
@@ -50,4 +48,6 @@ jobs:
       run: yarn install
 
     - name: Test
+      env:
+        RPC_URL: ${{ secrets.RPC_URL }}
       run: yarn test
