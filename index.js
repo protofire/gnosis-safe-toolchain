@@ -2,6 +2,8 @@ const getConfig = require('./src/config')
 const getCommands = require('./src/commands')
 const getAdmin = require('./src/admin')
 
+const util = require('./src/util')
+
 // { [rpcUrl, provider], walletPk, owners, threshold, gasPrice, networkType, networkId, safeAddress }
 module.exports = (conf) => {
   const config = getConfig(conf)
@@ -14,3 +16,5 @@ module.exports = (conf) => {
     admin,
   }
 }
+
+module.exports.util = util
