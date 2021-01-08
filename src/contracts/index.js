@@ -5,6 +5,7 @@ const gnosisSafeProxyFactoryAbi = require('./abi/GnosisSafeProxyFactory.json')
 const iProxyAbi = require('./abi/IProxy.json')
 const avaNetworks = require('./ava-networks.json')
 
+// For avalanche networkId should be set to 'mainnet' or 'testnet'
 module.exports = (networkType, networkId) => {
   const networks = networkType === 'ethereum' ? ethNetworks : avaNetworks
   const gnosisSafeAddress = networks.GnosisSafe[networkId].address

@@ -4,7 +4,8 @@ const getAdmin = require('./src/admin')
 
 const util = require('./src/util')
 
-// { [rpcUrl, provider], walletPk, owners, threshold, gasPrice, networkType, networkId, safeAddress }
+// { [rpcUrl | provider], walletPk, owners, threshold, gasPrice, networkType, networkId, safeAddress }
+// networkType=['ethereum'|'avalanche']
 module.exports = (conf) => {
   const config = getConfig(conf)
   const commands = getCommands(config)
